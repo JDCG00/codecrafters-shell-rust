@@ -48,13 +48,13 @@ fn read_perms(dir: &str, argument: &str) -> io::Result<()> {
         let permissions = entry.metadata()?.permissions().mode();
         let is_exec = (permissions & 0o111) != 0;
         if file == argument {
-            println!(
-                "Binario {} encontrado en {} con permisos ejecutables: {} ({:o})",
-                argument,
-                path.display(),
-                is_exec,
-                permissions & 0o777
-            );
+            // println!(
+            //     "Binario {} encontrado en {} con permisos ejecutables: {} ({:o})",
+            //     argument,
+            //     path.display(),
+            //     is_exec,
+            //     permissions & 0o777
+            // );
 
             if is_exec {
                 println!("{} is {}", file.display(), path.display())

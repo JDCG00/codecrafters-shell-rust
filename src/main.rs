@@ -21,14 +21,16 @@ fn main() {
                     _ => {
                         let path = var("PATH").unwrap_or_default();
                         let directories: Vec<&str> = path.split(':').collect();
+                        let mut found = false;
                         for directory in directories {
-                            let found = read_directory(directory, argument);
-
-                            if found.expect("Error") {
+                            if read_directory(directory, argument).unwrap_or(false) {
+                                found = true;
                                 break;
-                            } else {
-                                println!("{}: not found", argument)
                             }
+                        }
+
+                        if !found {
+                            println!("{}: not found", argument)
                         }
                     }
                 },

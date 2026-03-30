@@ -26,6 +26,8 @@ fn main() {
 
                             if found.expect("Error") {
                                 break;
+                            } else {
+                                println!("{}: not found", argument)
                             }
                         }
                     }

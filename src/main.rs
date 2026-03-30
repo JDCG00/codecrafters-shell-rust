@@ -24,7 +24,7 @@ fn main() {
                         for directory in directories {
                             let found = read_directory(directory, argument);
 
-                            if !found.expect("Error") {
+                            if found.expect("Error") {
                                 break;
                             }
                         }
@@ -61,8 +61,6 @@ fn read_directory(dir: &str, argument: &str) -> io::Result<bool> {
                     return Ok(true);
                 }
             }
-
-            return Ok(true);
         }
     }
 

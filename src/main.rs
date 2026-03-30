@@ -20,10 +20,14 @@ fn main() {
                     "exit" => println!("{} is a shell builtin", argument),
                     _ => {
                         println!("type {}", argument);
-                        let path = var("PATH").unwrap();
+                        let path = var("PATH").unwrap_or_default();
                         let directories: Vec<&str> = path.split(':').collect();
                         for directory in directories {
-                            let _ = read_perms(directory, argument);
+                            let found = read_directory(directory, argument);
+
+                            if found.expect("Error") {
+                                break;
+                            }
                         }
                     }
                 },
@@ -39,27 +43,29 @@ fn main() {
     }
 }
 
-fn read_perms(dir: &str, argument: &str) -> io::Result<()> {
+fn read_directory(dir: &str, argument: &str) -> io::Result<bool> {
     let entries = read_dir(dir)?;
+
     for entry_result in entries {
         let entry = entry_result?;
         let file = entry.file_name();
-        let path = entry.path();
-        let permissions = entry.metadata()?.permissions().mode();
-        let is_exec = (permissions & 0o111) != 0;
-        if file == argument {
-            // println!(
-            //     "Binario {} encontrado en {} con permisos ejecutables: {} ({:o})",
-            //     argument,
-            //     path.display(),
-            //     is_exec,
-            //     permissions & 0o777
-            // );
 
-            if is_exec {
-                println!("{} is {}", file.display(), path.display())
+        if file == argument {
+            {
+                let permissions = entry.metadata()?.permissions().mode();
+                let is_exec = (permissions & 0o111) != 0;
+
+                if is_exec {
+                    let path = entry.path();
+                    println!("{} is {}", file.to_string_lossy(), path.display());
+
+                    return Ok(true);
+                }
             }
+
+            return Ok(false);
         }
     }
-    Ok(())
+
+    Ok(false)
 }

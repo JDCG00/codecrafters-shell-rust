@@ -19,13 +19,12 @@ fn main() {
                     "type" => println!("{} is a shell builtin", argument),
                     "exit" => println!("{} is a shell builtin", argument),
                     _ => {
-                        println!("type {}", argument);
                         let path = var("PATH").unwrap_or_default();
                         let directories: Vec<&str> = path.split(':').collect();
                         for directory in directories {
                             let found = read_directory(directory, argument);
 
-                            if found.expect("Error") {
+                            if !found.expect("Error") {
                                 break;
                             }
                         }
@@ -63,7 +62,7 @@ fn read_directory(dir: &str, argument: &str) -> io::Result<bool> {
                 }
             }
 
-            return Ok(false);
+            return Ok(true);
         }
     }
 

@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::{env::var, fs::read_dir};
+use std::{env::var, fs::read_dir, os::unix::fs::PermissionsExt};
 
 fn main() {
     loop {
@@ -45,8 +45,14 @@ fn read_perms(dir: &str, argument: &str) -> io::Result<()> {
         let entry = entry_result?;
         let file = entry.file_name();
         let path = entry.path();
+        let permissions = entry.metadata()?.permissions().mode();
         if file == argument {
-            println!("Binario {} encontrado en {}", argument, path.display());
+            println!(
+                "Binario {} encontrado en {} con permisos: {:o}",
+                argument,
+                path.display(),
+                permissions
+            );
         }
     }
     Ok(())

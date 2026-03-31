@@ -1,6 +1,6 @@
 #[allow(unused_imports)]
 use std::io::{self, Write};
-use std::{env::var, fs::read_dir, os::unix::fs::PermissionsExt};
+use std::{env::var, fs::read_dir, os::unix::fs::PermissionsExt, process::Command};
 
 fn main() {
     loop {
@@ -23,7 +23,7 @@ fn main() {
                         let directories: Vec<&str> = path.split(':').collect();
                         let mut found = false;
                         for directory in directories {
-                            if read_directory(directory, argument).unwrap_or(false) {
+                            if read_directory(directory, "", argument).unwrap_or(false) {
                                 found = true;
                                 break;
                             }
@@ -34,7 +34,23 @@ fn main() {
                         }
                     }
                 },
-                _ => println!("{}: command not found", command.trim()),
+                _ => {
+                    let path = var("PATH").unwrap_or_default();
+                    let directories: Vec<&str> = path.split(':').collect();
+                    let mut found = false;
+                    for directory in directories {
+                        if read_directory(directory, command, argument).unwrap_or(false) {
+                            found = true;
+                            break;
+                        }
+                    }
+
+                    if !found {
+                        println!("{}: command not found", command.trim())
+                    } else {
+                        exec_command(command);
+                    }
+                }
             },
             None => match command.as_str() {
                 "echo" => println!(),
@@ -46,14 +62,19 @@ fn main() {
     }
 }
 
-fn read_directory(dir: &str, argument: &str) -> io::Result<bool> {
+fn read_directory(dir: &str, command: &str, argument: &str) -> io::Result<bool> {
     let entries = read_dir(dir)?;
+    let input = if command.is_empty() {
+        argument
+    } else {
+        command
+    };
 
     for entry_result in entries {
         let entry = entry_result?;
         let file = entry.file_name();
 
-        if file == argument {
+        if file == input {
             {
                 let permissions = entry.metadata()?.permissions().mode();
                 let is_exec = (permissions & 0o111) != 0;
@@ -69,4 +90,18 @@ fn read_directory(dir: &str, argument: &str) -> io::Result<bool> {
     }
 
     Ok(false)
+}
+
+fn exec_command(command: &str) {
+    println!("Executing {}", command);
+    let output = Command::new(command)
+        .output()
+        .expect("Failed to execute command");
+    let formated_output = output;
+
+    let mut list_dir = Command::new(command);
+    let status = list_dir.status().expect("Failed to execute command");
+
+    println!("process finished with: {status}");
+    println!("Output: {:?}", formated_output);
 }

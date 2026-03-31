@@ -96,7 +96,6 @@ fn read_directory(dir: &str, command: &str, argument: &str) -> io::Result<bool> 
 
 fn exec_command(command: &str, argument: &str) -> io::Result<()> {
     let args = argument.split(' ');
-    args.clone().for_each(|arg| println!("{}", arg));
 
     let mut child = Command::new(command)
         .args(args)

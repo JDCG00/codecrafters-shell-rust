@@ -48,7 +48,7 @@ fn main() {
                     if !found {
                         println!("{}: command not found", command.trim())
                     } else {
-                        exec_command(command);
+                        let _ = exec_command(command, argument);
                     }
                 }
             },
@@ -81,7 +81,9 @@ fn read_directory(dir: &str, command: &str, argument: &str) -> io::Result<bool> 
 
                 if is_exec {
                     let path = entry.path();
-                    println!("{} is {}", file.to_string_lossy(), path.display());
+                    if command.is_empty() {
+                        println!("{} is {}", file.to_string_lossy(), path.display());
+                    }
 
                     return Ok(true);
                 }
@@ -92,16 +94,23 @@ fn read_directory(dir: &str, command: &str, argument: &str) -> io::Result<bool> 
     Ok(false)
 }
 
-fn exec_command(command: &str) {
-    println!("Executing {}", command);
-    let output = Command::new(command)
-        .output()
+fn exec_command(command: &str, argument: &str) -> io::Result<()> {
+    let args = argument.split(' ');
+    args.clone().for_each(|arg| println!("{}", arg));
+
+    let mut child = Command::new(command)
+        .args(args)
+        .spawn()
         .expect("Failed to execute command");
-    let formated_output = output;
 
-    let mut list_dir = Command::new(command);
-    let status = list_dir.status().expect("Failed to execute command");
+    child.wait()?;
+    // let formated_output = output;
+    // println!("Output: {:?}", formated_output);
+    // io::stdout().write_all(&output.stdout)?;
 
-    println!("process finished with: {status}");
-    println!("Output: {:?}", formated_output);
+    // let mut list_dir = Command::new(command);
+    // let status = list_dir.status().expect("Failed to execute command");
+    // println!("process finished with: {status}");
+
+    Ok(())
 }

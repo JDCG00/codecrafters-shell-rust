@@ -103,13 +103,6 @@ fn exec_command(command: &str, argument: &str) -> io::Result<()> {
         .expect("Failed to execute command");
 
     child.wait()?;
-    // let formated_output = output;
-    // println!("Output: {:?}", formated_output);
-    // io::stdout().write_all(&output.stdout)?;
-
-    // let mut list_dir = Command::new(command);
-    // let status = list_dir.status().expect("Failed to execute command");
-    // println!("process finished with: {status}");
 
     Ok(())
 }

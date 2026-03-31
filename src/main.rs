@@ -7,59 +7,71 @@ fn main() {
         print!("$ ");
         io::stdout().flush().unwrap();
 
-        let mut command = String::new();
-        io::stdin().read_line(&mut command).unwrap();
-        command = command.trim().to_string();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        // input = input.trim().to_string();
+        let input = input.trim();
 
-        match command.split_once(' ') {
-            Some((command, argument)) => match command {
-                "echo" => println!("{}", argument),
-                "type" => match argument {
-                    "echo" => println!("{} is a shell builtin", argument),
-                    "type" => println!("{} is a shell builtin", argument),
-                    "exit" => println!("{} is a shell builtin", argument),
-                    _ => {
-                        let path = var("PATH").unwrap_or_default();
-                        let directories: Vec<&str> = path.split(':').collect();
-                        let mut found = false;
-                        for directory in directories {
-                            if read_directory(directory, "", argument).unwrap_or(false) {
-                                found = true;
-                                break;
-                            }
-                        }
+        let (command, args) = parse_input(input);
+        println!("Command: {} | Args: {:?}", command, args)
 
-                        if !found {
-                            println!("{}: not found", argument)
-                        }
-                    }
-                },
-                _ => {
-                    let path = var("PATH").unwrap_or_default();
-                    let directories: Vec<&str> = path.split(':').collect();
-                    let mut found = false;
-                    for directory in directories {
-                        if read_directory(directory, command, argument).unwrap_or(false) {
-                            found = true;
-                            break;
-                        }
-                    }
+        // match command.split_once(' ') {
+        //     Some((command, argument)) => match command {
+        //         "echo" => println!("{}", argument),
+        //         "type" => match argument {
+        //             "echo" => println!("{} is a shell builtin", argument),
+        //             "type" => println!("{} is a shell builtin", argument),
+        //             "exit" => println!("{} is a shell builtin", argument),
+        //             _ => {
+        //                 let path = var("PATH").unwrap_or_default();
+        //                 let directories: Vec<&str> = path.split(':').collect();
+        //                 let mut found = false;
+        //                 for directory in directories {
+        //                     if read_directory(directory, "", argument).unwrap_or(false) {
+        //                         found = true;
+        //                         break;
+        //                     }
+        //                 }
 
-                    if !found {
-                        println!("{}: command not found", command.trim())
-                    } else {
-                        let _ = exec_command(command, argument);
-                    }
-                }
-            },
-            None => match command.as_str() {
-                "echo" => println!(),
-                "type" => println!("Need one command. \nExample: type ls"),
-                "exit" => break,
-                _ => println!("{}: command not found", command.trim()),
-            },
-        }
+        //                 if !found {
+        //                     println!("{}: not found", argument)
+        //                 }
+        //             }
+        //         },
+        //         _ => {
+        //             let path = var("PATH").unwrap_or_default();
+        //             let directories: Vec<&str> = path.split(':').collect();
+        //             let mut found = false;
+        //             for directory in directories {
+        //                 if read_directory(directory, command, argument).unwrap_or(false) {
+        //                     found = true;
+        //                     break;
+        //                 }
+        //             }
+
+        //             if !found {
+        //                 println!("{}: command not found", command.trim())
+        //             } else {
+        //                 let _ = exec_command(command, argument);
+        //             }
+        //         }
+        //     },
+        //     None => match command.as_str() {
+        //         "echo" => println!(),
+        //         "type" => println!("Need one command. \nExample: type ls"),
+        //         "exit" => break,
+        //         _ => println!("{}: command not found", command.trim()),
+        //     },
+        // }
     }
+}
+
+fn parse_input(input: &str) -> (String, Vec<String>) {
+    let mut parts = input.split_whitespace();
+    let command = parts.next().unwrap_or("").to_string();
+    let args = parts.map(|a| a.to_string()).collect();
+
+    (command, args)
 }
 
 fn read_directory(dir: &str, command: &str, argument: &str) -> io::Result<bool> {
